@@ -4,69 +4,6 @@ import argparse
 from datetime import datetime
 import shlex
 
-def get_reminders_from_file(file=None):
-    if file is None:
-        file = "shrimple-reminders.txt"
-    
-    reminders = []
-    
-    try:
-        with open(file, "r", encoding="utf-8") as f:
-            for line in f.readlines():
-                reminders.append(line)
-    except FileNotFoundError:
-        # Create shrimple-reminders text file if it file not found.
-        with open(file, "w") as f:
-            pass
-            
-    return reminders
-
-def save_reminders_to_file(file=None, reminders_dict=None):
-    if file is None:
-        file = "shrimple-reminders.txt"
-    if reminders_dict is None:
-        reminders_dict = []
-        
-    with open(file, "w", encoding="utf-8") as f:
-        for reminder in format_reminders_from_dict(reminders_dict):
-            f.write(reminder)
-            f.write("\n")
-
-def format_reminders_into_dict(reminders):
-    reminders_dict = []
-    
-    for reminder in reminders:
-        formatted_reminder = {}
-        # Split via quotation marks. 
-        # The reminder should ideally be in this format (date is optional):
-        # [-] "Reminder content" DD-MM-YYYY
-        # [X] "Reminder content" DD-MM-YYYY
-        # Resulting in these args: [complete_or_not, content, optional_date]
-        reminder_args = shlex.split(reminder)
-        
-        formatted_reminder["complete"] = reminder_args[0] == "[X]"
-        formatted_reminder["reminder"] = reminder_args[1]
-        
-        # Only add the date if it is present.
-        if len(reminder_args) == 3:
-            formatted_reminder["date"] = reminder_args[2]
-        
-        reminders_dict.append(formatted_reminder)
-    
-    return reminders_dict
-
-def format_reminders_from_dict(reminders_dict):
-    reminders = []
-    
-    for formatted_reminder in reminders_dict:
-        reminder = "[X] " if reminder["complete"] else "[-] "
-        reminder += reminder["reminder"]
-        # := Assigns date to date within the if statement.
-        if (date := reminder.get("date", False)):
-            reminder += " " + date
-            
-    return reminders
-
 def date(date):
     # Give support for dd/mm/yyyy, yyyy/mm/dd, mm/dd/yyyy.
     # Support for dd/mm and mm/dd dates too, via appending the current year.
