@@ -107,10 +107,8 @@ def today_reminders(args):
                 # Strip line so newline don't get in the way.
                 line = line.strip()
                 reminder_args = shlex.split(line)
-                
                 complete = reminder_args[0] == "[X]"
                 reminder = reminder_args[1]
-                
                 # Only set the date if it is present.
                 reminder_date = None
                 if len(reminder_args) == 3:
@@ -127,7 +125,7 @@ def today_reminders(args):
                 
     except FileNotFoundError:
         # Create shrimple-reminders text file if non-existant.
-        with open(file, "w") as f:
+        with open(file, "w", encoding="utf-8") as f:
             pass
         
 def list_reminder(args):
@@ -137,10 +135,8 @@ def list_reminder(args):
                 # Strip line so newline don't get in the way.
                 line = line.strip()
                 reminder_args = shlex.split(line)
-                
                 complete = reminder_args[0] == "[X]"
                 reminder = reminder_args[1]
-                
                 # Only set the date if it is present.
                 reminder_date = None
                 if len(reminder_args) == 3:
@@ -174,7 +170,80 @@ def list_reminder(args):
                 
     except FileNotFoundError:
         # Create shrimple-reminders text file if non-existant.
-        with open(file, "w") as f:
+        with open(file, "w", encoding="utf-8") as f:
+            pass
+        
+def complete_reminder(args):
+    if not args.index and args.index != 0:
+        complete_parser.print_help()
+        exit()
+    
+    try:
+        with open("shrimple-reminders.txt", "r", encoding="utf-8") as f:
+            reminders = f.readlines()
+            
+        # Range checking on index, allowing for negatives indices.
+        if args.index >= len(reminders):
+            print(f"Index ({args.index}) out of range ({len(reminders)-1}).")
+            return
+        if args.index < -len(reminders):
+            print(f"Index ({args.index}) out of range ({-len(reminders)}).")
+            return
+        
+        reminder = reminders[args.index]
+        # Strip line so newline don't get in the way.
+        reminder = reminder.strip()
+        reminder_args = shlex.split(reminder)
+        reminder_content = reminder_args[1]
+        # Only set the date if it is present.
+        reminder_date = ""
+        if len(reminder_args) == 3:
+            reminder_date = " " + reminder_args[2]
+                
+        reminder = f"[X] {reminder_content}{reminder_date}\n"
+        reminders[args.index] = reminder
+        
+        with open("shrimple-reminders.txt", "w", encoding="utf-8") as f:
+            f.write("".join(reminders))
+            
+        print(f"{args.index}. {reminder_content}{reminder_date} set as marked")
+                
+    except FileNotFoundError:
+        # Create shrimple-reminders text file if non-existant.
+        with open("shrimple-reminders.txt", "w", encoding="utf-8") as f:
+            pass
+        
+def delete_reminder(args):
+    if not args.index and args.index != 0:
+        complete_parser.print_help()
+        exit()
+    
+    try:
+        with open("shrimple-reminders.txt", "r", encoding="utf-8") as f:
+            reminders = f.readlines()
+            
+        # Range checking on index, allowing for negatives indices.
+        if args.index >= len(reminders):
+            print(f"Index ({args.index}) out of range ({len(reminders)-1}).")
+            return
+        if args.index < -len(reminders):
+            print(f"Index ({args.index}) out of range ({-len(reminders)}).")
+            return
+        
+        reminder = reminders[args.index]
+        # Strip line so newline don't get in the way.
+        reminder = reminder.strip()
+        
+        reminders.pop(args.index)
+        
+        with open("shrimple-reminders.txt", "w", encoding="utf-8") as f:
+            f.write("".join(reminders))
+            
+        print(f"{args.index}. {reminder} deleted")
+                
+    except FileNotFoundError:
+        # Create shrimple-reminders text file if non-existant.
+        with open("shrimple-reminders.txt", "w", encoding="utf-8") as f:
             pass
 
 parser = argparse.ArgumentParser(description='A Shrimple reminders app.')
@@ -208,17 +277,15 @@ list_parser.set_defaults(func=list_reminder)
 
 complete_parser = subparsers.add_parser("complete",
                                         help="Marks a reminder as complete")
-complete_parser.add_argument("--reminder",
-                             help="complete reminder that exactly matches passed text")
-complete_parser.add_argument("--index",
+complete_parser.add_argument("--index", type=int,
                              help="complete reminder at passed index")
+complete_parser.set_defaults(func=complete_reminder)
 
 delete_parser = subparsers.add_parser("delete",
                                       help="Deletes reminders")
-delete_parser.add_argument("--reminder",
-                             help="delete reminder that exactly matches passed text")
-delete_parser.add_argument("--index",
+delete_parser.add_argument("--index", type=int,
                              help="delete reminder at passed index")
+delete_parser.set_defaults(func=delete_reminder)
 
 args = parser.parse_args()
 print(args)
