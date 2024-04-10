@@ -106,10 +106,42 @@ def list_reminder(args):
             for line in f.readlines():
                 # Strip line so newline don't get in the way.
                 line = line.strip()
+                reminder_args = shlex.split(line)
                 
-                # Implement querying code here.
+                complete = reminder_args[0] == "[X]"
+                reminder = reminder_args[1]
+                
+                # Only set the date if it is present.
+                reminder_date = None
+                if len(reminder_args) == 3:
+                    reminder_date = reminder_args[2]
+                
+                # Filter through all search flags and skip reminder if not met.
+                if args.reminder is not None and args.reminder != reminder:
+                    continue
+                if args.complete and not complete:
+                    continue
+                if args.on is not None:
+                    if reminder_date is not None:
+                        if args.on != date(reminder_date):
+                            continue
+                    else:
+                        continue
+                if args.after is not None:
+                    if reminder_date is not None:
+                        if date(reminder_date) <= args.after:
+                            continue
+                    else:
+                        continue
+                if args.before is not None:
+                    if reminder_date is not None:
+                        if date(reminder_date) >= args.before:
+                            continue
+                    else:
+                        continue
                 
                 print(line)
+                
     except FileNotFoundError:
         # Create shrimple-reminders text file if non-existant.
         with open(file, "w") as f:
@@ -131,13 +163,15 @@ list_parser = subparsers.add_parser("list",
                                     help="Searches for and lists reminders")
 list_parser.add_argument("--reminder",
                          help="searches for reminders containing the passed text")
-list_parser.add_argument("-complete", 
+list_parser.add_argument("--complete", action="store_true",
                          help="searches for reminders marked as complete")
-list_parser.add_argument("--on", 
+list_parser.add_argument("--uncomplete", action="store_true",
+                         help="searches for reminders marked as uncomplete")
+list_parser.add_argument("--on", type=date,
                          help="searches for reminders set to provided date")
-list_parser.add_argument("--after", 
+list_parser.add_argument("--after", type=date,
                          help="searches for reminders set to after the provided date")
-list_parser.add_argument("--before", 
+list_parser.add_argument("--before", type=date,
                          help="searches for reminders set to before the provided date")
 list_parser.set_defaults(func=list_reminder)
 
