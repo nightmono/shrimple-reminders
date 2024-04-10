@@ -99,6 +99,36 @@ def add_reminder(args):
             file.write(args.date.strftime("%d/%m/%Y"))
         
         file.write("\n")
+
+def today_reminders(args):
+    try:
+        with open("shrimple-reminders.txt", "r", encoding="utf-8") as f:
+            for line in f.readlines():
+                # Strip line so newline don't get in the way.
+                line = line.strip()
+                reminder_args = shlex.split(line)
+                
+                complete = reminder_args[0] == "[X]"
+                reminder = reminder_args[1]
+                
+                # Only set the date if it is present.
+                reminder_date = None
+                if len(reminder_args) == 3:
+                    reminder_date = reminder_args[2]
+                
+                # Skip reminders that do not match today's date.
+                if reminder_date is None:
+                    continue
+                else:
+                    if reminder_date != datetime.now().strftime("%d/%m/%Y"):
+                        continue
+                
+                print(line)
+                
+    except FileNotFoundError:
+        # Create shrimple-reminders text file if non-existant.
+        with open(file, "w") as f:
+            pass
         
 def list_reminder(args):
     try:
@@ -157,7 +187,8 @@ add_parser.add_argument("--date", type=date,
                         help="date of the reminder")
 add_parser.set_defaults(func=add_reminder)
 
-subparsers.add_parser("today", help="View today's reminders")
+today_parser = subparsers.add_parser("today", help="View today's reminders")
+today_parser.set_defaults(func=today_reminders)
 
 list_parser = subparsers.add_parser("list", 
                                     help="Searches for and lists reminders")
