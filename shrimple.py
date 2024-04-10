@@ -88,11 +88,32 @@ def add_reminder(args):
         add_parser.print_help()
         exit()
         
+    with open("shrimple-reminders.txt", "a", encoding="UTF-8") as file:
+        file.write("[-] ")
+        file.write("\"")
+        file.write(" ".join(args.reminder))
+        file.write("\"")
+        
+        if args.date:
+            file.write(" ")
+            file.write(args.date.strftime("%d/%m/%Y"))
+        
+        file.write("\n")
+        
 def list_reminder(args):
-    reminders = get_reminders_from_file()
-    reminders_dict = format_reminders_into_dict(reminders)
-    
-    print("\n".join(reminders))
+    try:
+        with open("shrimple-reminders.txt", "r", encoding="utf-8") as f:
+            for line in f.readlines():
+                # Strip line so newline don't get in the way.
+                line = line.strip()
+                
+                # Implement querying code here.
+                
+                print(line)
+    except FileNotFoundError:
+        # Create shrimple-reminders text file if non-existant.
+        with open(file, "w") as f:
+            pass
 
 parser = argparse.ArgumentParser(description='A Shrimple reminders app.')
 subparsers = parser.add_subparsers()
