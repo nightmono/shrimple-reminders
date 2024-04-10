@@ -103,7 +103,7 @@ def add_reminder(args):
 def today_reminders(args):
     try:
         with open("shrimple-reminders.txt", "r", encoding="utf-8") as f:
-            for line in f.readlines():
+            for i, line in enumerate(f.readlines()):
                 # Strip line so newline don't get in the way.
                 line = line.strip()
                 reminder_args = shlex.split(line)
@@ -123,7 +123,7 @@ def today_reminders(args):
                     if reminder_date != datetime.now().strftime("%d/%m/%Y"):
                         continue
                 
-                print(line)
+                print(f"{i}. {line}")
                 
     except FileNotFoundError:
         # Create shrimple-reminders text file if non-existant.
@@ -133,7 +133,7 @@ def today_reminders(args):
 def list_reminder(args):
     try:
         with open("shrimple-reminders.txt", "r", encoding="utf-8") as f:
-            for line in f.readlines():
+            for i, line in enumerate(f.readlines()):
                 # Strip line so newline don't get in the way.
                 line = line.strip()
                 reminder_args = shlex.split(line)
@@ -170,7 +170,7 @@ def list_reminder(args):
                     else:
                         continue
                 
-                print(line)
+                print(f"{i}. {line}")
                 
     except FileNotFoundError:
         # Create shrimple-reminders text file if non-existant.
