@@ -119,6 +119,10 @@ def complete_reminder(args):
         with open("shrimple-reminders.txt", "r", encoding="utf-8") as f:
             reminders = f.readlines()
             
+            if not reminders:
+                print("No reminders to mark.")
+                return
+            
         # Range checking on index, allowing for negatives indices.
         if args.index >= len(reminders):
             print(f"Index ({args.index}) out of range ({len(reminders)-1}).")
@@ -158,6 +162,10 @@ def delete_reminder(args):
     try:
         with open("shrimple-reminders.txt", "r", encoding="utf-8") as f:
             reminders = f.readlines()
+            
+            if not reminders:
+                print("No reminders to delete.")
+                return
             
         # Range checking on index, allowing for negatives indices.
         if args.index >= len(reminders):
