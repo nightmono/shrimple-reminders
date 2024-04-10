@@ -21,24 +21,19 @@ def get_reminders_from_file(file=None):
             
     return reminders
 
-def save_reminders_to_file(file=None, reminders=None):
+def save_reminders_to_file(file=None, reminders_dict=None):
     if file is None:
         file = "shrimple-reminders.txt"
-    if reminders is None:
-        reminders = []
+    if reminders_dict is None:
+        reminders_dict = []
         
     with open(file, "w", encoding="utf-8") as f:
-        for reminder in reminders:
-            f.write("[X]" if reminder["complete"] else "[-] ")
-            f.write(reminder["reminder"])
-            # := Assigns date to date within the if statement.
-            if (date := reminder.get("date", False)):
-                f.write(f" {date}\n")
-            else:
-                f.write("\n")
+        for reminder in format_reminders_from_dict(reminders_dict):
+            f.write(reminder)
+            f.write("\n")
 
-def format_reminders(reminders):
-    formatted_reminders = []
+def format_reminders_into_dict(reminders):
+    reminders_dict = []
     
     for reminder in reminders:
         formatted_reminder = {}
@@ -56,10 +51,22 @@ def format_reminders(reminders):
         if len(reminder_args) == 3:
             formatted_reminder["date"] = reminder_args[2]
         
-        formatted_reminders.append(formatted_reminder)
+        reminders_dict.append(formatted_reminder)
     
-    return formatted_reminders
+    return reminders_dict
+
+def format_reminders_from_dict(reminders_dict):
+    reminders = []
+    
+    for formatted_reminder in reminders_dict:
+        reminder = "[X] " if reminder["complete"] else "[-] "
+        reminder += reminder["reminder"]
+        # := Assigns date to date within the if statement.
+        if (date := reminder.get("date", False)):
+            reminder += " " + date
             
+    return reminders
+
 def date(date):
     # Give support for dd/mm/yyyy, yyyy/mm/dd, mm/dd/yyyy.
     # Support for dd/mm and mm/dd dates too, via appending the current year.
@@ -76,6 +83,17 @@ def date(date):
         
     raise ValueError(f"{date} is an invalid date")
 
+def add_reminder(args):
+    if not args.reminder:
+        add_parser.print_help()
+        exit()
+        
+def list_reminder(args):
+    reminders = get_reminders_from_file()
+    reminders_dict = format_reminders_into_dict(reminders)
+    
+    print("\n".join(reminders))
+
 parser = argparse.ArgumentParser(description='A Shrimple reminders app.')
 subparsers = parser.add_subparsers()
 
@@ -84,6 +102,7 @@ add_parser.add_argument('reminder', nargs='*',
                     help='reminder description')
 add_parser.add_argument("--date", type=date,
                         help="date of the reminder")
+add_parser.set_defaults(func=add_reminder)
 
 subparsers.add_parser("today", help="View today's reminders")
 
@@ -99,6 +118,7 @@ list_parser.add_argument("--after",
                          help="searches for reminders set to after the provided date")
 list_parser.add_argument("--before", 
                          help="searches for reminders set to before the provided date")
+list_parser.set_defaults(func=list_reminder)
 
 complete_parser = subparsers.add_parser("complete",
                                         help="Marks a reminder as complete")
@@ -120,3 +140,6 @@ print(args)
 # Print help if ran without arguments.
 if not vars(args):
     parser.print_help()
+    exit()
+    
+args.func(args)
